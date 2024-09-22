@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Builder</title>
+    <style>
+        /* CSS */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <!-- jsPDF و FileSaver.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 id="title">ATS CV Builder</h1>
+
+        <!-- اختيار اللغة -->
+        <label for="language">Select Language:</label>
+        <select id="language" name="language" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="ar">العربية</option>
+            <option value="de">Deutsch</option>
+        </select>
+
+        <form id="cvForm" onsubmit="return false;">
+            <label for="name" id="nameLabel">Full Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email" id="emailLabel">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="phone" id="phoneLabel">Phone Number:</label>
+            <input type="tel" id="phone" name="phone" required>
+
+            <label for="summary" id="summaryLabel">Professional Summary:</label>
+            <textarea id="summary" name="summary" rows="4" required></textarea>
+
+            <label for="experience" id="experienceLabel">Work Experience:</label>
+            <textarea id="experience" name="experience" rows="4" required></textarea>
+
+            <label for="skills" id="skillsLabel">Skills:</label>
+            <textarea id="skills" name="skills" rows="3" required></textarea>
+
+            <label for="education" id="educationLabel">Education:</label>
+            <textarea id="education" name="education" rows="3" required></textarea>
+
+            <label for="fileType" id="fileTypeLabel">Download as:</label>
+            <select id="fileType" name="fileType">
+                <option value="pdf">PDF</option>
+                <option value="word">Word</option>
+            </select>
+
+            <button type="submit" id="submitButton">Create CV</button>
+        </form>
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        // Translations
+        const translations = {
+            en: {
+                title: "ATS CV Builder",
+                nameLabel: "Full Name:",
+                emailLabel: "Email:",
+                phoneLabel: "Phone Number:",
+                summaryLabel: "Professional Summary:",
+                experienceLabel: "Work Experience:",
+                skillsLabel: "Skills:",
+                educationLabel: "Education:",
+                fileTypeLabel: "Download as:",
+                submitButton: "Create CV"
+            },
+            ar: {
+                title: "منشئ السيرة الذاتية بنظام ATS",
+                nameLabel: "الاسم الكامل:",
+                emailLabel: "البريد الإلكتروني:",
+                phoneLabel: "رقم الهاتف:",
+                summaryLabel: "الملخص المهني:",
+                experienceLabel: "الخبرة العملية:",
+                skillsLabel: "المهارات:",
+                educationLabel: "التعليم:",
+                fileTypeLabel: "التنزيل كـ:",
+                submitButton: "إنشاء السيرة الذاتية"
+            },
+            de: {
+                title: "ATS Lebenslauf-Ersteller",
+                nameLabel: "Vollständiger Name:",
+                emailLabel: "E-Mail:",
+                phoneLabel: "Telefonnummer:",
+                summaryLabel: "Beruflicher Werdegang:",
+                experienceLabel: "Berufserfahrung:",
+                skillsLabel: "Fähigkeiten:",
+                educationLabel: "Bildung:",
+                fileTypeLabel: "Herunterladen als:",
+                submitButton: "Lebenslauf erstellen"
+            }
+        };
+
+        // Change language
+        function changeLanguage() {
+            const language = document.getElementById("language").value;
+            document.getElementById("title").textContent = translations[language].title;
+            document.getElementById("nameLabel").textContent = translations[language].nameLabel;
+            document.getElementById("emailLabel").textContent = translations[language].emailLabel;
+            document.getElementById("phoneLabel").textContent = translations[language].phoneLabel;
+            document.getElementById("summaryLabel").textContent = translations[language].summaryLabel;
+            document.getElementById("experienceLabel").textContent = translations[language].experienceLabel;
+            document.getElementById("skillsLabel").textContent = translations[language].skillsLabel;
+            document.getElementById("educationLabel").textContent = translations[language].educationLabel;
+            document.getElementById("fileTypeLabel").textContent = translations[language].fileTypeLabel;
+            document.getElementById("submitButton").textContent = translations[language].submitButton;
+        }
+
+        // Prevent form submission and generate CV
+        document.getElementById('cvForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form from submitting and refreshing the page
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const summary = document.getElementById('summary').value;
+            const experience = document.getElementById('experience').value;
+            const skills = document.getElementById('skills').value;
+            const education = document.getElementById('education').value;
+            const fileType = document.getElementById('fileType').value;
+            
+            if (fileType === 'pdf') {
+                // Create PDF using jsPDF
+                const doc = new jsPDF();
+
+                // Add title and sections with improved formatting
+                doc.setFontSize(16);
+                doc.text("Curriculum Vitae", 105, 20, { align: "center" });
+                
+                doc.setFontSize(12);
+                doc.text("Full Name:", 10, 30);
+                doc.setFont("bold");
+                doc.text(name, 50, 30);
+                doc.setFont("normal");
+                
+                doc.text("Email:", 10, 40);
+                doc.setFont("bold");
+                doc.text(email, 50, 40);
+                doc.setFont("normal");
+
+                doc.text("Phone Number:", 10, 50);
+                doc.setFont("bold");
+                doc.text(phone, 50, 50);
+                doc.setFont("normal");
+
+                doc.text("Professional Summary:", 10, 60);
+                doc.setFont("bold");
+                doc.text(doc.splitTextToSize(summary, 150), 10, 70);
+                doc.setFont("normal");
+
+                doc.text("Work Experience:", 10, 100);
+                doc.setFont("bold");
+                doc.text(doc.splitTextToSize(experience, 150), 10, 110);
+                doc.setFont("normal");
+
+                doc.text("Skills:", 10, 140);
+                doc.setFont("bold");
+                doc.text(doc.splitTextToSize(skills, 150), 10, 150);
+                doc.setFont("normal");
+
+                doc.text("Education:", 10, 170);
+                doc.setFont("bold");
+                doc.text(doc.splitTextToSize(education, 150), 10, 180);
+                doc.setFont("normal");
+
+                // Save the PDF
+                doc.save('cv.pdf');
+            } else if (fileType === 'word') {
+                // Create Word document
+                const cvContent = `
+                    Full Name: ${name}\n
+                    Email: ${email}\n
+                    Phone: ${phone}\n
+                    Professional Summary:\n${summary}\n
+                    Work Experience:\n${experience}\n
+                    Skills:\n${skills}\n
+                    Education:\n${education}
+                `;
+                const blob = new Blob([cvContent], { type: 'application/msword' });
+                saveAs(blob, 'cv.doc');
+            }
+        });
+    </script>
+</body>
+</html>
+
+
